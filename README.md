@@ -15,7 +15,7 @@ Our workflow takes as input a folder of DICOM format videos and performs the fol
 1. View classification:  using predict_viewclass.py
 2. Segmentation: using segment_a4c_a2c_plax_psax.py
 3. Phasing and assessment of disease probabilities (currently HCM and amyloid): using output_disease_prob_phased.py
-4. Common 2D measurements including mass, volumes and ejection fraction using analyze_segmentaitons_unet_a4c_a2c_psax_plax.py
+4. Common 2D measurements including mass, volumes and ejection fraction using analyze_segmentations_unet_a4c_a2c_psax_plax.py
 5. Global longitudinal strain: using compute_strain.py
 
 Models are currently stored separately on Dropbox:  
