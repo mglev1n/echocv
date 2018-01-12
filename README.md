@@ -7,6 +7,7 @@ Our echo computer vision pipelines has a several dependencies including:
 3. trackpy
 4. PIMS
 5. numpy/scipy/pandas/scikit-learn
+6. gdcm (Grassroots DICOM library)
 
 We recommend using Anaconda, which has many of these installed, and allows ready installation of the remaining packages through conda or pip.
 
