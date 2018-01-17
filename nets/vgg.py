@@ -6,7 +6,6 @@ import sys
 
 sys.path.append('../funcs/')
 import nn
-import process_data
 
 # # Network
 class Network(object):        
