@@ -307,7 +307,7 @@ def outputstrain(dicomdir, videofile, scorethresh, ft, nrow, ncol, window, x_sca
                 adjustcurrentpart(partlimit, minmass, frames)
         adjustcurrentpart(partlimit, minmass, frames)
         end = len(frames) - 1
-        if not len(np.where(frames[0] > 0)[0]) < 0.015*nrow*ncol: #heuristic filter for bad segmentation
+        if not len(np.where(frames[0] > 0)[0]) < 0.01*nrow*ncol: #heuristic filter for bad segmentation
             framelo = 0
             framehi = end
             outputstrain_window(frames, framelo, framehi, minmass, 
