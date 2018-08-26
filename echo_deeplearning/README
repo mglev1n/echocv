@@ -1,0 +1,73 @@
+Tensorflow and python code to run deep learning models.
+
+FILEPATHS
+───
+```
+echo_deeplearning/
+|   README
+|
+|---data/ 
+|   |   a4c/
+|   |   |---a2c_txt/
+|   |   |---seg_data/
+|   |   |---splits/
+|   |   
+|   |   ...
+|   |
+|---models/    (code, visualizations, trained models are here)
+|   |---unet_12/    (architecture/model being trained)
+|   |   |   load_model.py    (code necessary for the model)
+|   |   |
+|   |   |---a4c/   (experiment folder)
+|   |   |   config.json    (variables and hyperparameters)
+|   |   |   |---train/    (saved checkpoints are saved here, folder will automatically generate upon running run.py)
+|   |   |   |---val/    (visualization results are outputted here, folder will automatically generate upon running run.py)
+|   |
+|   |   ...
+|   |
+|---src/
+|   |   run.py    (python file to run models)
+|   |   util.py    (utility functions)
+```
+
+FOLDER DESCRIPTIONS
+    'data/' holds data and information for each model
+    'models/' holds all models and experiments
+    'src/' holds python files to run
+
+HYPERPARAMTERS
+    All parameters are stored in config.json files
+
+    data (string) - data folder name (data preprocessing is located in this folder)
+    feature_dim (int) - number of channels in the input images
+    label_dim (int) - number of unique segmentation labels
+    mean (float) - mean pixel of images
+    dropout (float) - dropout probability for dropout layers
+    weight_decay (float) - weight in loss for weight decay
+    learning_rate (float) - learning rate for ADAM optimizer
+    image_size (int) - dimension of image (assumed square image)
+    epochs (int) - number of epochs to run
+    epoch_save_interval (int) - number of epochs run before saving model and visualizing validation results
+    batch_size (int) - batch size for stochastic gradient descent
+    summary_interval (int) - number of steps in training before saving variables for tensorboard
+    loss_smoothing (int) - number of loss values averaged for display
+
+
+TO RUN
+    a4c/ folders included as examples. 
+    Model requires data to be preprocessed. 
+        - Create your own data folder ([data]) (ex: 'data/a4c/)
+        - Make changes to 'data/a4c/load_model.py', follow format, and save under 'data/[data]/load_model.py'
+
+    Models require hyperparameters
+        - Create your own experiment folder ([experiment]) (ex: 'models/unet_12/a4c/')
+        - Modify hyperparameters and save under 'models/[model]/[experiment]/config.json'
+
+    Run src/run.py from the echo_deeplearning/ folder 
+        - Read src/run.py for arguments options (only required arugment is the model and experiment)
+        - Format is 'python src/run.py models/[model]/[experiment]'
+            ex: 'python src/run.py models/unet_12/a4c'
+            ex 2: 'python src/run.py models/unet_12/a4c --train True --gpu 0 --val_split 0 --debug False --retrain False' 
+	- Note if terminal begins to overflow with progress text, stretch the terminal window so all information fits on one line
+
+
