@@ -4,7 +4,7 @@ import tensorflow as tf
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
-import random
+import random, math
 import os, sys
 
 from util import *
@@ -53,7 +53,7 @@ def crop_data(img, label, crop_max):
     Returns cropped image and label
 
     @params img: numpy array of an image
-    @params img: numpy array of a label
+    @params label: numpy array of a label
     @params crop_max: integer of maximum amount cropped from each side of image
     '''
     ret_img = img.copy()
@@ -172,15 +172,15 @@ class NN(object):
 
         '''
         scores = [0] * int(y_test.shape[3]-1)
-	counts = [0] * int(y_test.shape[3]-1)
+        counts = [0] * int(y_test.shape[3]-1)
         for i in range(int(x_test.shape[0])):
             gt = np.argmax(y_test[i,:,:,:], 2)
             pred = np.argmax(self.predict(x_test[i:i+1])[0,:,:,:], 2)
             for j in range(int(y_test.shape[3]-1)):
                 dice = iou(gt, pred, j+1)
-		if not math.isnan(dice):
+                if not math.isnan(dice):
                     scores[j] = scores[j] + dice
-		    counts[j] = counts[j] + 1
+                    counts[j] = counts[j] + 1
                 
         return [score/counts[i] for i, score in enumerate(scores)]
 
