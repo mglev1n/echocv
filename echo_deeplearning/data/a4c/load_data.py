@@ -10,8 +10,8 @@ def load_data(config, val_split=0):
     '''
     Preprocesses data and loads them into numpy arrays
     Returns
-        x_train, x_test (training and test images)
-        y_train, y_test (training and test labels)
+        x_train, x_test (training and validation images)
+        y_train, y_test (training and validation labels)
     Images have dimensions N x im_size x im_size x feature_dim
     Labels have dimensions N x im_size x im_size x label_dim 
         N is number of images
@@ -56,7 +56,7 @@ def load_data(config, val_split=0):
     x_test = []
     y_test = []
 
-    # Separate training and validation images/labels
+    # Separate training and validation images/labels using predefined splits
     for i in range(len(filenames)):
         filename = filenames[i]
         study = '_'.join(filename.split('_')[:4])

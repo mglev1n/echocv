@@ -15,7 +15,7 @@ echo_deeplearning/
 |   |   ...
 |   |
 |---models/    (code, visualizations, trained models are here)
-|   |---unet_12/    (architecture/model being trained)
+|   |---unet_12_crop/    (architecture/model being trained)
 |   |   |   load_model.py    (code necessary for the model)
 |   |   |
 |   |   |---a4c/   (experiment folder)
@@ -31,7 +31,7 @@ echo_deeplearning/
 ```
 
 FOLDER DESCRIPTIONS
-    'data/' holds data and information for each model
+    'data/' holds data and preprocessing information for each model
     'models/' holds all models and experiments
     'src/' holds python files to run
 
@@ -45,6 +45,7 @@ HYPERPARAMTERS
     dropout (float) - dropout probability for dropout layers
     weight_decay (float) - weight in loss for weight decay
     learning_rate (float) - learning rate for ADAM optimizer
+    crop_max (int) - maximum crop range from each side of image
     image_size (int) - dimension of image (assumed square image)
     epochs (int) - number of epochs to run
     epoch_save_interval (int) - number of epochs run before saving model and visualizing validation results
@@ -60,14 +61,20 @@ TO RUN
         - Make changes to 'data/a4c/load_model.py', follow format, and save under 'data/[data]/load_model.py'
 
     Models require hyperparameters
-        - Create your own experiment folder ([experiment]) (ex: 'models/unet_12/a4c/')
+        - Create your own experiment folder ([experiment]) (ex: 'models/unet_12_crop/a4c/')
         - Modify hyperparameters and save under 'models/[model]/[experiment]/config.json'
 
     Run src/run.py from the echo_deeplearning/ folder 
         - Read src/run.py for arguments options (only required arugment is the model and experiment)
         - Format is 'python src/run.py models/[model]/[experiment]'
-            ex: 'python src/run.py models/unet_12/a4c'
-            ex 2: 'python src/run.py models/unet_12/a4c --train True --gpu 0 --val_split 0 --debug False --retrain False' 
+            ex: 'python src/run.py models/unet_12_crop/a4c'
+            ex 2: 'python src/run.py models/unet_12_crop/a4c --train True --gpu 0 --val_split 0 --debug False --retrain False' 
 	- Note if terminal begins to overflow with progress text, stretch the terminal window so all information fits on one line
+
+    Visualize progress, loss, training accuracy, and validation accuracy
+        - Tensorboard variables will be stored under 'models/[model]/[experiment]/train/'
+        - Run 'tensorboard --logdir models/[model]/[experiment]/train/'
+        - View at http://0.0.0.0:6006
+	    ex: 'tensorboard --logdir models/unet_12_crop/a4c/train/'
 
 

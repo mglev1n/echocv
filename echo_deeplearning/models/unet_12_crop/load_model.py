@@ -13,7 +13,7 @@ from scipy.ndimage.filters import gaussian_filter
 from skimage import exposure
 
 def load_model(config, sess):
-    return Unet(config, sess)
+    return NN(config, sess)
 
 def load_data(config, sess):
     data_dir = os.path.join(Data, config.data)
@@ -46,9 +46,49 @@ def val_print(i, j, loss, acc, time):
           "Acc: {} |".format(np.round(acc,3)), 
           "Time {:1.2} ".format(time), 
           "   ", end="\r")
-    
 
-class Unet(object):        
+def crop_data(img, label, crop_max):
+    '''
+    Crops an image and its label by some random integer amount between 0 and crop_max from each side of image
+    Returns cropped image and label
+
+    @params img: numpy array of an image
+    @params img: numpy array of a label
+    @params crop_max: integer of maximum amount cropped from each side of image
+    '''
+    ret_img = img.copy()
+    ret_label = label.copy()
+    if crop_max:
+        x_min = random.randint(0,crop_max)
+        x_max = img.shape[0] - random.randint(0,crop_max)
+        y_min = random.randint(0,crop_max)
+        y_max = img.shape[1] - random.randint(0,crop_max)
+        for i in range(img.shape[2]):
+            crop = ret_img[:,:,i]
+            crop = imresize(crop[x_min:x_max, y_min:y_max],(img.shape[0],img.shape[1]))
+            ret_img[:,:,i] = crop
+        for i in range(label.shape[2]):
+            crop = ret_label[:,:,i]
+            crop = imresize(crop[x_min:x_max, y_min:y_max],(label.shape[0],label.shape[1]))
+            ret_label[:,:,i] = crop
+    return ret_img, ret_label
+
+def data_augmentation(x_train, y_train, crop_max):
+    '''
+    Applies data augmentation to training images
+    Returns augmented/altered training images
+    
+    @params x_train: numpy array of training images
+    @params crop_max: integer of maximum amount cropped from each side of image
+    '''
+    x_train_copy = x_train.copy()
+    y_train_copy = y_train.copy()
+    if crop_max > 0:
+        for i in range(x_train.shape[0]):
+            x_train_copy[i], y_train_copy[i] = crop_data(x_train_copy[i], y_train_copy[i], crop_max)
+    return x_train_copy, y_train_copy
+
+class NN(object):        
     def __init__(self, config, sess):
         self.config = config
         self.sess = sess
@@ -58,14 +98,13 @@ class Unet(object):
         self.y_test = tf.placeholder(tf.float32, [None, config.image_size,config.image_size, config.label_dim])
         
         self.global_step = tf.Variable(0, trainable=False)
-        self.output = self.unet(self.x_train, config.mean, keep_prob=config.dropout)
+        self.output = self.network(self.x_train, config.mean, keep_prob=config.dropout)
         self.loss = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.output, labels=self.y_train)) 
             + config.weight_decay * tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables()]))
         self.opt = tf.train.AdamOptimizer(config.learning_rate).minimize(self.loss, global_step=self.global_step)
         
-        self.pred = self.unet(self.x_test, config.mean, keep_prob=1.0, reuse=True)
+        self.pred = self.network(self.x_test, config.mean, keep_prob=1.0, reuse=True)
         self.loss_summary = tf.summary.scalar('loss', self.loss)
-
   
     def train(self, x_train, y_train, x_test, y_test, saver, summary_writer, checkpoint_path, val_output_dir):
         '''
@@ -95,7 +134,8 @@ class Unet(object):
 
             for j in range(int(x_train.shape[0]/batch_size)):
                 temp_indicies = indicies[j*batch_size:(j+1)*batch_size]
-                loss, loss_summary = self.fit_batch(x_train[temp_indicies], y_train[temp_indicies])
+                x_train_temp, y_train_temp = data_augmentation(x_train[temp_indicies], y_train[temp_indicies], config.crop_max)
+                loss, loss_summary = self.fit_batch(x_train_temp, y_train_temp)
                 
                 if step % config.summary_interval == 0:
                     summary_writer.add_summary(loss_summary, step)
@@ -132,14 +172,17 @@ class Unet(object):
 
         '''
         scores = [0] * int(y_test.shape[3]-1)
+	counts = [0] * int(y_test.shape[3]-1)
         for i in range(int(x_test.shape[0])):
             gt = np.argmax(y_test[i,:,:,:], 2)
             pred = np.argmax(self.predict(x_test[i:i+1])[0,:,:,:], 2)
             for j in range(int(y_test.shape[3]-1)):
                 dice = iou(gt, pred, j+1)
-                scores[j] = scores[j] + dice 
+		if not math.isnan(dice):
+                    scores[j] = scores[j] + dice
+		    counts[j] = counts[j] + 1
                 
-        return [score/float(x_test.shape[0]) for score in scores]
+        return [score/counts[i] for i, score in enumerate(scores)]
 
     def fit_batch(self, x_train, y_train):
         '''
@@ -152,7 +195,7 @@ class Unet(object):
     
     def predict(self, x):
         '''
-        Forward pass of the neural network. Predicts labels for images in x.
+        Forward pass of the neural network. Predicts labels for images x.
 
         @params x: Numpy array of training images
         '''
@@ -182,7 +225,7 @@ class Unet(object):
             plt.savefig(os.path.join(out_dir,out_filename))
             plt.close()
             
-    def unet(self, input, mean, keep_prob=0.5, reuse=None):
+    def network(self, input, mean, keep_prob=0.5, reuse=None):
         '''
         Neural network architecture
         Returns segmentation label predictions on input
@@ -193,7 +236,7 @@ class Unet(object):
         @params reuse: Set to None for new session and True to use same variables in same session
         '''
         config = self.config
-        with tf.variable_scope('unet', reuse=reuse):
+        with tf.variable_scope('network', reuse=reuse):
             input = input - mean
             pool_ = lambda x: max_pool(x, 2, 2)
             conv_ = lambda x, output_depth, name, stride=1, padding='SAME', relu=True, filter_size=3: conv(x, filter_size, output_depth, stride, name=name, padding=padding, relu=relu)
