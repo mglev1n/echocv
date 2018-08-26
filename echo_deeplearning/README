@@ -1,7 +1,7 @@
 Tensorflow and python code to run deep learning models.
 
 FILEPATHS
-───
+
 ```
 echo_deeplearning/
 |   README
@@ -31,11 +31,13 @@ echo_deeplearning/
 ```
 
 FOLDER DESCRIPTIONS
-    'data/' holds data and preprocessing information for each model
+
+    'data/' holds data and information for each model
     'models/' holds all models and experiments
     'src/' holds python files to run
 
 HYPERPARAMTERS
+
     All parameters are stored in config.json files
 
     data (string) - data folder name (data preprocessing is located in this folder)
@@ -55,6 +57,7 @@ HYPERPARAMTERS
 
 
 TO RUN
+
     a4c/ folders included as examples. 
     Model requires data to be preprocessed. 
         - Create your own data folder ([data]) (ex: 'data/a4c/)
