@@ -74,7 +74,7 @@ TO RUN
 	- Note if terminal begins to overflow with progress text, stretch the terminal window so all information fits on one line
 
     Visualize progress, loss, training accuracy, and validation accuracy
-        - Tensorboard variables will be stored under 'models/[model]/[experiment]/train/'
+        - Tensorboard variables will be stored under 'models/[model]/[experiment]/train/[val_split]'
         - Run 'tensorboard --logdir models/[model]/[experiment]/train/'
         - View at 'http://0.0.0.0:6006'
 	    ex: 'tensorboard --logdir models/unet_12_crop/a4c/train/'
