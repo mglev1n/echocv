@@ -1,29 +1,25 @@
 # coding: utf-8
 import sys
+import os
+import dicom
+import time
+sys.path.append("/home/rdeo/anaconda/lib/python2.7/site-packages/")
 import numpy as np
 import subprocess
 from subprocess import Popen, PIPE
 from scipy.misc import imread, imsave, imresize
 import cv2
-import os
-import dicom
-import time
 
 def computehr_gdcm(data):
-    '''
-    identifies heart rate for a given video
-    '''
     hr = "None"
     for i in data:
         i = i.lstrip()
         if i.split(" ")[0] == '(0018,1088)':
-            hr = i.split("[")[1].split("]")[0]
-    return eval(hr)
+            hr = eval(i.split("[")[1].split("]")[0])
+            print("heart rate found")
+    return hr
 
 def computexy_gdcm(data):
-    '''
-    returns number of rows and columns
-    '''
     for i in data:
         i = i.lstrip()
         if i.split(" ")[0] == '(0028,0010)':
@@ -48,8 +44,7 @@ def computebsa_gdcm(data):
 
 def computedeltaxy_gdcm(data):
     '''
-    returns the number of cm per pixel in the x and y direction
-    0.012 threshold is included as heuristic because (0018,602) code includes other portions of image
+    the unit is the number of cm per pixel 
     '''
     xlist = []
     ylist = []
@@ -66,9 +61,6 @@ def computedeltaxy_gdcm(data):
     return np.min(xlist), np.min(ylist)
 
 def remove_periphery(imgs):
-    '''
-    retains central cone-shaped area of echo images
-    '''
     imgs_ret = []
     for img in imgs:
         image = img.astype('uint8').copy()
@@ -97,7 +89,13 @@ def remove_periphery(imgs):
             imgs_ret.append(img*mask)
     return np.array(imgs_ret)
 
-def computeft_gdcm(data):
+def computeft_gdcm(video, study, appdir):
+    videodir = appdir + "static/studies/" + study.file
+    command = 'gdcmdump ' + videodir + "/" + video.file + "| grep Frame"
+    pipe = Popen(command, stdout=PIPE, stderr=None, shell=True)
+    text = pipe.communicate()[0]
+    data = text.split("\n")
+    defaultframerate = 30
     counter = 0
     for i in data:
         if i.split(" ")[0] == '(0018,1063)':
@@ -111,69 +109,123 @@ def computeft_gdcm(data):
             framerate = i.split(" ")[3]
             frametime = str(1000 / eval(framerate))
             counter = 1
-        elif i.split(" ")[0] == '(0018,1065)': #frame time vector
-            framevec = i.split(" ")[2][1:-1].split("\\")
-            frametime = framevec[10] #arbitrary frame
+    if not counter == 1:
+        print("missing framerate")
+        framerate = defaultframerate
+        frametime = str(1000 / framerate)
+    ft = eval(frametime)
+    return ft
+
+def computeft_gdcm_strain(data):
+    defaultframerate = None
+    counter = 0
+    for i in data:
+        if i.split(" ")[0] == '(0018,1063)':
+            frametime = i.split(" ")[2][1:-1]
             counter = 1
-    if counter == 1:
-        ft = frametime
-        return eval(ft)
-    else:
-        return None
+        elif i.split(" ")[0] == '(0018,0040)':
+            framerate = i.split("[")[1].split(" ")[0][:-1]
+            frametime = str(1000 / eval(framerate))
+            counter = 1
+        elif i.split(" ")[0] == '(7fdf,1074)':
+            framerate = i.split(" ")[3]
+            frametime = str(1000 / eval(framerate))
+            counter = 1
+    if not counter == 1:
+        print("missing framerate")
+        framerate = defaultframerate
+        frametime = str(1000 / framerate)
+    ft = eval(frametime)
+    return ft
 
 def output_imgdict(imagefile):
     '''
-    converts raw dicom to numpy arrays; some dicom images are YBR_FULL_422 compression; others are uncompressed
+    converts raw dicom to numpy arrays
     '''
-    ds = imagefile
-    if len(ds.pixel_array.shape) == 4: #format 3, nframes, nrow, ncol
-        nframes = ds.pixel_array.shape[1]
-        maxframes = nframes * 3
-    elif len(ds.pixel_array.shape) == 3: #format nframes, nrow, ncol
-        nframes = ds.pixel_array.shape[0]
-        maxframes = nframes * 1
-    nrow = int(ds.Rows)
-    ncol = int(ds.Columns)
-    ArrayDicom = np.zeros((nrow, ncol), dtype=ds.pixel_array.dtype)
-    imgdict = {}
-    for counter in range(0, maxframes, 3):  
-        k = counter % nframes
-        j = (counter) // nframes
-        m = (counter + 1) % nframes
-        l = (counter + 1) // nframes
-        o = (counter + 2) % nframes
-        n = (counter + 2) // nframes
-        if len(ds.pixel_array.shape) == 4: #this is typical YBR_FULL_422
-            a = ds.pixel_array[j, k, :, :]
-            b = ds.pixel_array[l, m, :, :]
-            c = ds.pixel_array[n, o, :, :]
-            d = np.vstack((a, b))
-            e = np.vstack((d, c))
-            g = e.reshape(3 * nrow * ncol, 1)
-            y = g[::3]
-            u = g[1::3]
-            v = g[2::3]
-            y = y.reshape(nrow, ncol)
-            u = u.reshape(nrow, ncol)
-            v = v.reshape(nrow, ncol)
-            ArrayDicom[:, :] = ybr2gray(y, u, v)
-            ArrayDicom[0:int(nrow / 10), 0:int(ncol)] = 0  # blanks out name for most studies
-            counter = counter + 1
-            ArrayDicom.clip(0)
-            nrowout = nrow
-            ncolout = ncol
-            x = int(counter / 3)
-            imgdict[x] = imresize(ArrayDicom, (nrowout, ncolout))
-        elif len(ds.pixel_array.shape) == 3:
-            ArrayDicom[:, :] = ds.pixel_array[counter, :, :]
-            ArrayDicom[0:int(nrow / 10), 0:int(ncol)] = 0  # blanks out name for most studies
-            counter = counter + 1
-            ArrayDicom.clip(0)
-            nrowout = nrow
-            ncolout = ncol
-            x = int(counter / 3)
-            imgdict[x] = imresize(ArrayDicom, (nrowout, ncolout))
-    return imgdict
+    try:
+        ds = imagefile
+        if len(ds.pixel_array.shape) == 4: #format 3, nframes, nrow, ncol
+            nframes = ds.pixel_array.shape[1]
+            maxframes = nframes * 3
+        elif len(ds.pixel_array.shape) == 3: #format nframes, nrow, ncol
+            nframes = ds.pixel_array.shape[0]
+            maxframes = nframes * 1
+        #print("nframes", nframes)
+        nrow = int(ds.Rows)
+        ncol = int(ds.Columns)
+        ArrayDicom = np.zeros((nrow, ncol), dtype=ds.pixel_array.dtype)
+        imgdict = {}
+        for counter in range(0, maxframes, 3):  # this will iterate through all subframes for a loop
+            k = counter % nframes
+            j = (counter) // nframes
+            m = (counter + 1) % nframes
+            l = (counter + 1) // nframes
+            o = (counter + 2) % nframes
+            n = (counter + 2) // nframes
+            #print("j", j, "k", k, "l", l, "m", m, "n", n, "o", o)
+            if len(ds.pixel_array.shape) == 4:
+                a = ds.pixel_array[j, k, :, :]
+                b = ds.pixel_array[l, m, :, :]
+                c = ds.pixel_array[n, o, :, :]
+                d = np.vstack((a, b))
+                e = np.vstack((d, c))
+                #print(e.shape)
+                g = e.reshape(3 * nrow * ncol, 1)
+                y = g[::3]
+                u = g[1::3]
+                v = g[2::3]
+                y = y.reshape(nrow, ncol)
+                u = u.reshape(nrow, ncol)
+                v = v.reshape(nrow, ncol)
+                ArrayDicom[:, :] = ybr2gray(y, u, v)
+                ArrayDicom[0:int(nrow / 10), 0:int(ncol)] = 0  # blanks out name
+                counter = counter + 1
+                ArrayDicom.clip(0)
+                nrowout = nrow
+                ncolout = ncol
+                x = int(counter / 3)
+                imgdict[x] = imresize(ArrayDicom, (nrowout, ncolout))
+            elif len(ds.pixel_array.shape) == 3:
+                ArrayDicom[:, :] = ds.pixel_array[counter, :, :]
+                ArrayDicom[0:int(nrow / 10), 0:int(ncol)] = 0  # blanks out name
+                counter = counter + 1
+                ArrayDicom.clip(0)
+                nrowout = nrow
+                ncolout = ncol
+                x = int(counter / 3)
+                imgdict[x] = imresize(ArrayDicom, (nrowout, ncolout))
+        return imgdict
+    except:
+        return None
+
+
+def create_mask(imgs):
+    '''
+    removes static burned in pixels in image; will use for disease diagnosis
+    '''
+    from scipy.ndimage.filters import gaussian_filter
+    diffs = []
+    for i in range(len(imgs) - 1):
+        temp = np.abs(imgs[i] - imgs[i + 1])
+        temp = gaussian_filter(temp, 10)
+        temp[temp <= 50] = 0
+        temp[temp > 50] = 1
+
+        diffs.append(temp)
+
+    diff = np.mean(np.array(diffs), axis=0)
+    diff[diff >= 0.5] = 1
+    diff[diff < 0.5] = 0
+    return diff
+
+def ybr2gray(y, u, v):
+    r = y + 1.402 * (v - 128)
+    g = y - 0.34414 * (u - 128) - 0.71414 * (v - 128)
+    b = y + 1.772 * (u - 128)
+    # print r, g, b
+    gray = (0.2989 * r + 0.5870 * g + 0.1140 * b)
+    return np.array(gray, dtype="int8")
+
 
 def create_imgdict_from_dicom(directory, filename):
     """
@@ -196,55 +248,4 @@ def create_imgdict_from_dicom(directory, filename):
             print(outrawfile, "missing")
     return imgdict
 
-def create_mask(imgs):
-    '''
-    removes static burned in pixels in image
-    '''
-    from scipy.ndimage.filters import gaussian_filter
-    diffs = []
-    for i in range(len(imgs) - 1):
-        temp = np.abs(imgs[i] - imgs[i + 1])
-        temp = gaussian_filter(temp, 10)
-        temp[temp <= 50] = 0
-        temp[temp > 50] = 1
 
-        diffs.append(temp)
-
-    diff = np.mean(np.array(diffs), axis=0)
-    diff[diff >= 0.5] = 1
-    diff[diff < 0.5] = 0
-    return diff
-
-def ybr2gray(y, u, v):
-    '''
-    conversion of ybr to grayscale
-    '''
-    r = y + 1.402 * (v - 128)
-    g = y - 0.34414 * (u - 128) - 0.71414 * (v - 128)
-    b = y + 1.772 * (u - 128)
-    gray = (0.2989 * r + 0.5870 * g + 0.1140 * b)
-    return np.array(gray, dtype="int8")
-
-def extractmetadata(dicomdir, videofile):
-    command = 'gdcmdump ' + dicomdir + "/" + videofile
-    pipe = subprocess.Popen(command, stdout=PIPE, stderr=None, shell=True)
-    text = pipe.communicate()[0]
-    data = text.split("\n")
-    a = computedeltaxy_gdcm(data)
-    if not a == None:
-        x_scale, y_scale = a
-    else:
-        x_scale, y_scale = None, None
-    hr = computehr_gdcm(data)
-    b = computexy_gdcm(data)
-    if not b == None:
-        nrow, ncol = b
-    else:
-        nrow, ncol = None, None
-    ft = computeft_gdcm(data)
-    bsa = None
-    try:
-        bsa = computebsa_gdcm(data)
-    except Exception as e:
-        print e, "bsa"
-    return bsa, ft, hr, nrow, ncol, x_scale, y_scale

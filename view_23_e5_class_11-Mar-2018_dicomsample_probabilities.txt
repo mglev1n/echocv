@@ -1,0 +1,7 @@
+study	image	prob_plax_far	prob_plax_plax	prob_plax_laz	prob_psax_az	prob_psax_mv	prob_psax_pap	prob_a2c_lvocc_s	prob_a2c_laocc	prob_a2c	prob_a3c_lvocc_s	prob_a3c_laocc	prob_a3c	prob_a4c_lvocc_s	prob_a4c_laocc	prob_a4c	prob_a5c	prob_other	prob_rvinf	prob_psax_avz	prob_suprasternal	prob_subcostal	prob_plax_lac	prob_psax_apex
+dicomsample	Image-3.dcm	0.0	1.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
+dicomsample	Image-40.dcm	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0001	0.0003	0.0024	0.0	0.0	0.9946	0.0008	0.0012	0.0	0.0	0.0	0.0	0.0	0.0
+dicomsample	Image-43.dcm	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0003	0.0	0.0	0.9114	0.0881	0.0002	0.0	0.0	0.0	0.0	0.0	0.0
+dicomsample	Image-22.dcm	0.0001	0.0	0.0	0.0	0.0	0.9928	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0004	0.0	0.0009	0.0057
+dicomsample	Image-20.dcm	0.0	0.0	0.0	0.0	0.0007	0.9984	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0004
+dicomsample	Image-41.dcm	0.0	0.0	0.0	0.0	0.0	0.0	0.0004	0.1863	0.8093	0.0001	0.0002	0.0032	0.0	0.0	0.0	0.0003	0.0001	0.0	0.0	0.0	0.0	0.0	0.0
