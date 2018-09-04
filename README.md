@@ -15,8 +15,8 @@ Our workflow takes as input a folder of DICOM format videos and performs the fol
 
 1. View classification:  using predict_viewclass_v2.py
 2. Segmentation: using segment_a4c_a2c_a3c_plax_psax.py
-3. Common 2D measurements including mass, volumes and ejection fraction using analyze_segmentations_unet_a4c_a2c_psax_plax.py
-4. Global longitudinal strain: using compute_strain.py
+3. Common 2D measurements including mass, volumes and ejection fraction using analyze_segmentations_unet_a4c_a2c_psax_plax_v2.py
+4. Global longitudinal strain: using strain_strainrate_unet_pool_v2.py
 
 Models are currently stored separately on Dropbox:  
 
