@@ -1,8 +1,6 @@
 import tensorflow as tf
 import numpy as np
-import random
 import sys
-import os
 sys.path.append('../funcs/')
 import nn
 

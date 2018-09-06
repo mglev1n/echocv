@@ -1,22 +1,7 @@
 from __future__ import division
-import sys
-import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
-import matplotlib.pyplot as plt
-import pickle
-import os
-import pandas as pd
-#from pandas import rolling_median
-from scipy.misc import imread, imsave, imresize
-from scipy.ndimage.filters import gaussian_filter
-from skimage.morphology import convex_hull_image
-import scipy.fftpack as fft
 from ggplot import *
-from scipy import signal
-import statsmodels.formula.api as sm
-from optparse import OptionParser
-import cPickle, gzip
 from echoanalysis_tools import *
 
 

@@ -1,29 +1,14 @@
 from __future__ import division, print_function, absolute_import
-import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import random
-import os
-import sys
-import gzip, cPickle
 from PIL import Image
-import itertools
-#sys.path.append('./funcs/')
-#sys.path.append('./nets/')
 from util import *
-import cv2
-from optparse import OptionParser
-from sklearn.metrics import confusion_matrix
-from scipy.misc import imread, imresize
-from scipy.ndimage.filters import gaussian_filter
+from scipy.misc import imresize
 from skimage.color import rgb2gray, gray2rgb
-import dicom
-from echoanalysis_tools import output_imgdict, create_imgdict_from_dicom
+from echoanalysis_tools import create_imgdict_from_dicom
 
-from tensorflow.python.client import device_lib
-import time
 
 #purpose:
 

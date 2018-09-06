@@ -1,21 +1,10 @@
 # coding: utf-8
 from __future__ import division
-import numpy as np
-import pickle
-import cv2
-import pandas as pd
-from pandas import rolling_median
 import matplotlib as mpl
 mpl.use('Agg')
-import matplotlib.pyplot as plt
-import subprocess
-from subprocess import Popen, PIPE
-from scipy.misc import imread, imsave, imresize
 import pandas as pd
 import scipy.fftpack as fft
-from scipy import signal
-import statsmodels.formula.api as sm
-from pandas import rolling_median
+import pickle
 from echoanalysis_tools import *
 
 def point_distance(point1, point2):

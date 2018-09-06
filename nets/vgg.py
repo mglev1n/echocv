@@ -1,7 +1,5 @@
 import numpy as np
 import tensorflow as tf
-import random
-import os
 import sys
 
 sys.path.append('../funcs/')

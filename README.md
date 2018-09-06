@@ -1,6 +1,8 @@
 # echocv
 
-Our echo computer vision pipelines has a several dependencies including:
+### Installation
+
+Our echo computer vision pipeline has a several dependencies including:
 
 1. opencv
 2. tensorflow-gpu
@@ -9,7 +11,15 @@ Our echo computer vision pipelines has a several dependencies including:
 5. numpy/scipy/pandas/scikit-learn
 6. gdcm (Grassroots DICOM library)
 
-We recommend using Anaconda, which has many of these installed, and allows ready installation of the remaining packages through conda or pip.
+We recommend using Anaconda, which has many of these installed, and allows ready installation of the remaining packages through conda or pip. This project is written in python2. Compatible library versions can be found in `requirements.txt`. 
+
+##### Creating an virtual environment using Anaconda
+
+1. Create a virtual conda environment: `conda create -n echocv python=2.7.11 anaconda`
+2. Activate that environment: `source activate echocv`
+3. Install the libraries into the echocv environment: `pip install -r requirements.txt`
+
+### Usage
 
 Our workflow takes as input a folder of DICOM format videos and performs the following
 

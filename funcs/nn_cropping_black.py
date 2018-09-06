@@ -5,10 +5,8 @@ import timeit
 import random
 
 from skimage.draw import circle
-#from skimage.filters import sobel
 from collections import deque
-from sklearn.metrics import confusion_matrix
-from scipy.misc import imread, imresize
+from scipy.misc import imresize
 from scipy.ndimage.filters import gaussian_filter
 ############################
 # Neural Network Functions #

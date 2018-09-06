@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-import dicom
-from echoanalysis_tools import output_imgdict, create_mask, \
-create_imgdict_from_dicom
+from echoanalysis_tools import create_mask, create_imgdict_from_dicom
 import cv2
 import numpy as np
-from scipy.misc import imread, imsave, imresize
-import gzip, cPickle
+from scipy.misc import imresize
 
 outDir = "./strainOutput/"
 segDir = "./segment/"

@@ -2,25 +2,17 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 import tensorflow as tf
 import random
-import os
 import sys
-import itertools
-import gzip, cPickle
 import cv2
-import time
 import dicom
 import os
 sys.path.append('./funcs/')
 sys.path.append('./nets/')
-import nn
-#import process_data
 import subprocess
-from subprocess import Popen, PIPE
 import time
-from scipy import stats
-from shutil import move, rmtree
+from shutil import rmtree
 from optparse import OptionParser
-from scipy.misc import imread, imsave, imresize
+from scipy.misc import imread
 from echoanalysis_tools import output_imgdict
 
 # # Hyperparams

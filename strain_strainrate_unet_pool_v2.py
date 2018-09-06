@@ -1,23 +1,15 @@
 # coding: utf-8
 from __future__ import division
-import pickle
-import sys
 import moments as mom
-import numpy as np
 from skimage.morphology import convex_hull_image
 import trackpy as tp
 import pims
 import cv2
 import pickle
-import cPickle, gzip
-from echoanalysis_tools import *
-import time
-import os
 from output_cropped_forstrain_v2 import outputcropped
 from optparse import OptionParser
 from process_gls_fcn_v2 import process_gls
 from multiprocessing import Pool
-import gc
 import shutil
 from echoanalysis_tools import *
 

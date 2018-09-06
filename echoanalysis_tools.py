@@ -7,7 +7,7 @@ sys.path.append("/home/rdeo/anaconda/lib/python2.7/site-packages/")
 import numpy as np
 import subprocess
 from subprocess import Popen, PIPE
-from scipy.misc import imread, imsave, imresize
+from scipy.misc import imresize
 import cv2
 
 def computehr_gdcm(data):
