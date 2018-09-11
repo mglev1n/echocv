@@ -8,7 +8,7 @@ from scipy.misc import imread
 
 
 
-def load_data(config, study_num):
+def load_data(config, val_split):
     '''
     Preprocesses data and loads them into numpy arrays
     Returns
@@ -45,14 +45,14 @@ def load_data(config, study_num):
                 labels.append(label)
     images = np.array(images)
     labels = np.array(labels)
-    train_lst = np.load('data/' + config.data + '/splits/train_lst_' + str(study_num) + '.npy')
-    val_lst = np.load('data/' + config.data + '/splits/val_lst_' + str(study_num) + '.npy')
+    train_lst = np.load('data/' + config.data + '/splits/train_lst_' + str(val_split) + '.npy')
+    val_lst = np.load('data/' + config.data + '/splits/val_lst_' + str(val_split) + '.npy')
 
     x_train, y_train, x_test, y_test = split_data(filenames, images, labels, train_lst, val_lst)
 
-    x_train = np.array(x_train).reshape((len(x_train),224,224,config.feature_dim))
+    x_train = np.array(x_train).reshape((len(x_train),config.image_size,config.image_size,config.feature_dim))
     y_train = np.array(y_train).reshape((len(y_train),config.label_dim))
-    x_test = np.array(x_test).reshape((len(x_test),224,224,config.feature_dim))
+    x_test = np.array(x_test).reshape((len(x_test),config.image_size,config.image_size,config.feature_dim))
     y_test = np.array(y_test).reshape((len(y_test),config.label_dim))
     return x_train, x_test, y_train, y_test
 

@@ -222,13 +222,8 @@ class NN(object):
 
         '''
         accuracy = 0.0
-        for i in range(int(x_test.shape[0]/batch_size)):
-            accuracy = accuracy + batch_size * self.accuracy(x_test[i*batch_size:(i+1)*batch_size], 
-                                                              y_test[i*batch_size:(i+1)*batch_size])
-        # Tail Case
-        if x_test.shape[0] % batch_size != 0:
-            accuracy = accuracy + (x_test.shape[0]%batch_size) * self.accuracy(x_test[(i+1)*batch_size:], 
-                                                              y_test[(i+1)*batch_size:])
+        for i in range(x_test.shape[0]):
+            accuracy = accuracy + self.accuracy(x_test[i:(i+1)], y_test[i:(i+1)])
         return accuracy/(x_test.shape[0])
     
     def predict(self, x):
