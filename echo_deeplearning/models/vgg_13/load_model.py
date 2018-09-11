@@ -63,12 +63,12 @@ def crop_data(img, crop_max):
     
     if crop_max:
         x_min = random.randint(0,crop_max)
-        x_max = 224 - x_min
+        x_max = img.shape[0] - x_min
         y_min = x_min
-        y_max = 224 - x_min
+        y_max = img.shape[1] - x_min
         for i in range(ret_img.shape[2]):
             crop = ret_img[:,:,i]
-            crop = imresize(crop[x_min:x_max, y_min:y_max],(224,224))
+            crop = imresize(crop[x_min:x_max, y_min:y_max],(img.shape[0],img.shape[1]))
             ret_img[:,:,i] = crop
 
     return ret_img  
@@ -92,9 +92,9 @@ class NN(object):
         self.config = config
         self.sess = sess
 
-        self.x_train = tf.placeholder(tf.float32, [None, 224, 224, config.feature_dim])
+        self.x_train = tf.placeholder(tf.float32, [None, config.image_size, config.image_size, config.feature_dim])
         self.y_train = tf.placeholder(tf.uint8, [None, config.label_dim])
-        self.x_test = tf.placeholder(tf.float32, [None, 224, 224, config.feature_dim])
+        self.x_test = tf.placeholder(tf.float32, [None, config.image_size, config.image_size, config.feature_dim])
         self.y_test = tf.placeholder(tf.uint8, [None, config.label_dim])
         
         self.global_step = tf.Variable(0, trainable=False)
@@ -305,8 +305,8 @@ class NN(object):
         config = self.config
         with tf.variable_scope('network', reuse=reuse):
             pool_ = lambda x: max_pool(x, 2, 2)
-            conv_ = lambda x, output_depth, name, trainable = True: conv(x, 3, output_depth, 1, config.weight_decay, name=name, trainable = trainable)
-            fc_ = lambda x, features, name, relu = True: fc(x, features, config.weight_decay, name, relu = relu)
+            conv_ = lambda x, output_depth, name, stride=1, padding='SAME', relu=True, filter_size=3: conv(x, filter_size, output_depth, stride, name=name, padding=padding, relu=relu)
+            fc_ = lambda x, features, name, relu = True: fc(x, features, name, relu = relu)
             # VGG_MEAN = [103.939, 116.779, 123.68]
             VGG_MEAN = [config.mean, config.mean, config.mean]
             input = tf.concat([
