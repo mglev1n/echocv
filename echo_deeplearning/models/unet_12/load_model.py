@@ -9,6 +9,8 @@ import os, sys
 
 from util import *
 from scipy.misc import imread, imresize
+from skimage.draw import circle
+from skimage.filters import sobel
 from scipy.ndimage.filters import gaussian_filter
 from skimage import exposure
 
@@ -47,17 +49,17 @@ def val_print(i, j, loss, acc, time):
           "Time {:1.2} ".format(time), 
           "   ", end="\r")
 
-def crop_data(img, label, crop_max):
+def crop_data(img, segmentation, crop_max):
     '''
-    Crops an image and its label by some random integer amount between 0 and crop_max from each side of image
-    Returns cropped image and label
+    Crops an image and its segmentation by some random integer amount between 0 and crop_max from each side of image
+    Returns cropped image and segementation
 
     @params img: numpy array of an image
-    @params label: numpy array of a label
+    @params segmentation: numpy array of a segmentation
     @params crop_max: integer of maximum amount cropped from each side of image
     '''
     ret_img = img.copy()
-    ret_label = label.copy()
+    ret_label = segmentation.copy()
     if crop_max:
         x_min = random.randint(0,crop_max)
         x_max = img.shape[0] - random.randint(0,crop_max)
@@ -67,25 +69,46 @@ def crop_data(img, label, crop_max):
             crop = ret_img[:,:,i]
             crop = imresize(crop[x_min:x_max, y_min:y_max],(img.shape[0],img.shape[1]))
             ret_img[:,:,i] = crop
-        for i in range(label.shape[2]):
+        for i in range(segmentation.shape[2]):
             crop = ret_label[:,:,i]
-            crop = imresize(crop[x_min:x_max, y_min:y_max],(label.shape[0],label.shape[1]))
+            crop = imresize(crop[x_min:x_max, y_min:y_max],(segmentation.shape[0],segmentation.shape[1]))
             ret_label[:,:,i] = crop
     return ret_img, ret_label
 
-def data_augmentation(x_train, y_train, crop_max):
+def blackout_data(img, segmentation, image_size, blackout_max):
+    '''
+    Black out a random circle in an image around the edge a segmentation
+
+    @params img: numpy array of an image
+    @params segmentation: numpy array of a segmentation
+    @params blackout_max: integer of maximum circle radius of blackout
+    '''
+    img = img.copy()
+    if blackout_max:
+        segmentation = segmentation.copy()
+        edges = gaussian_filter(sobel(segmentation.astype('uint8')),0.3)
+        border = np.where(edges > 0)
+        if len(border[0] != 0):
+            point = random.randint(0,len(border[0])-1)
+            rr, cc = circle(border[0][point], border[1][point],random.randint(1,blackout_max))
+            img[np.clip(rr, 0, image_size-1), np.clip(cc, 0, image_size-1)] = random.randint(0,50)
+    return img
+
+def data_augmentation(x_train, y_train, config):
     '''
     Applies data augmentation to training images
     Returns augmented/altered training images
     
     @params x_train: numpy array of training images
-    @params crop_max: integer of maximum amount cropped from each side of image
+    @params y_train: numpy array of segmentations
+    @params config: dictionary of hyperparameters (includes data augmentation parameters)
     '''
     x_train_copy = x_train.copy()
     y_train_copy = y_train.copy()
-    if crop_max > 0:
-        for i in range(x_train.shape[0]):
-            x_train_copy[i], y_train_copy[i] = crop_data(x_train_copy[i], y_train_copy[i], crop_max)
+    seg_num = y_train.shape[3]
+    for i in range(x_train.shape[0]):
+        x_train_copy[i] = blackout_data(x_train_copy[i], y_train_copy[i,:,:,random.randint(1,seg_num-1)], config.image_size, config.blackout_max)
+        x_train_copy[i], y_train_copy[i] = crop_data(x_train_copy[i], y_train_copy[i], config.crop_max)
     return x_train_copy, y_train_copy
 
 class NN(object):        
@@ -134,7 +157,7 @@ class NN(object):
 
             for j in range(int(x_train.shape[0]/batch_size)):
                 temp_indicies = indicies[j*batch_size:(j+1)*batch_size]
-                x_train_temp, y_train_temp = data_augmentation(x_train[temp_indicies], y_train[temp_indicies], config.crop_max)
+                x_train_temp, y_train_temp = data_augmentation(x_train[temp_indicies], y_train[temp_indicies], config)
                 loss, loss_summary = self.fit_batch(x_train_temp, y_train_temp)
                 
                 if step % config.summary_interval == 0:
