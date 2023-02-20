@@ -1,5 +1,11 @@
 # echocv
 
+
+```
+This repository is a fork of the original echocv repository hosted at:
+https://bitbucket.org/rahuldeo/echocv/src/master/
+```
+
 ### Installation
 
 Our echo computer vision pipeline has a several dependencies including:
